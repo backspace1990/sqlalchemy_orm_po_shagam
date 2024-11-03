@@ -2,6 +2,5 @@
 myenvsql/*
 src/__pycache__/*
 src/queries/__pycache__/*
-.DS_Store
 */__pycache__/*
 */queries/__pycache__/*

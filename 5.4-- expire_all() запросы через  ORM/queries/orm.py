@@ -35,7 +35,8 @@ class SyncORM:
         with session_faktory() as session:
             worker_jack = session.get(WorkersOrm, worker_id)
             worker_jack.username = new_username  #debug
-            session.expire_all() #debug #bütün değişimi geri alır sync dir
+            #session.expire_all() #debug #bütün değişimi geri alır sync dir
+            session.refresh(worker_jack) # debug
             session.commit() #debug
 
 #"""

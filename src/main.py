@@ -15,7 +15,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 #SyncCore.update_worker_sqlal_po_func()
 
 
-#SyncORM.create_tables()
-#SyncORM.insert_data()
-SyncORM.select_workers()
+SyncORM.create_tables()
+SyncORM.insert_data() 
+SyncORM.select_workers() 
 SyncORM.update_workers()

@@ -4,3 +4,4 @@ src/__pycache__/*
 src/queries/__pycache__/*
 */__pycache__/*
 */queries/__pycache__/*
+.DS_Store

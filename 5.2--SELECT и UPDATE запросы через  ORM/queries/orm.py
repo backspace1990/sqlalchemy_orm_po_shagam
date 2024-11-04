@@ -36,13 +36,3 @@ class SyncORM:
             worker_jack = session.get(WorkersOrm, worker_id)
             worker_jack.username = new_username
             session.commit()
-
-#"""
-#for async sess 
-#"""
-#async def asyn_insert_data():
-#    async with asyn_session_faktory() as asyn_session:
-#        workers_bobr = WorkersOrm(username="Bobr")
-#        workers_volk = WorkersOrm(username="Volk")
-#        asyn_session.add_all([workers_bobr, workers_volk])
-#        await asyn_session.commit()

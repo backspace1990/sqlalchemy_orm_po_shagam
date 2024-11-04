@@ -3,13 +3,6 @@ from database import sync_engine, async_engine
 from models import metadata_obj, workers_table
 
 
-def create_tables():
-    sync_engine.echo = True
-    metadata_obj.drop_all(sync_engine)
-    metadata_obj.create_all(sync_engine)
-    sync_engine.echo = True
-
-
 class SyncCore:
     @staticmethod
     def create_tables():

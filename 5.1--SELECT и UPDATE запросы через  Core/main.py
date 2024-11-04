@@ -1,8 +1,6 @@
 import os
 import sys
-import asyncio
-#from queries.core import create_tables, insert_data1, insert_data
-from queries.orm import create_tables, insert_data, asyn_insert_data
+
 from queries.core import SyncCore
 
 

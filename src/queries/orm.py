@@ -1,6 +1,7 @@
-from sqlalchemy import select, func, cast, Integer, and_
-from database import sync_engine, session_faktory, Base
+from sqlalchemy import select, func, cast, Integer, and_, insert
+from database import sync_engine, session_faktory, Base, asyn_session_faktory
 from models import  WorkersOrm, ResumesOrm, Workload
+from sqlalchemy.orm import aliased
 
 
 class SyncORM:
@@ -77,6 +78,132 @@ class SyncORM:
             print(result[0].avg_compensation)
             print(result[1].avg_compensation)
     
+    @staticmethod
+    async def insert_additional_resumes():
+        async with asyn_session_faktory() as session:
+            workers = [
+                {"username": "Artem"},
+                {"username": "Roman"},
+                {"username": "Petr"},
+            ]
+            resumes = [
+                {"title":"Python Программист", "compensation": 60000, "workload": "fulltime", "worker_id": 3},
+                {"title":"Machine Learning Engineer", "compensation": 70000, "workload": "parttime", "worker_id": 3},
+                {"title":"Python Data Scientist", "compensation": 80000, "workload": "parttime", "worker_id": 4},
+                {"title":"Python Analyst", "compensation": 90000, "workload": "fulltime", "worker_id": 4},
+                {"title":"Python Junior Developer", "compensation": 100000, "workload": "fulltime", "worker_id": 5},
+            ]
+            insert_workers = insert(WorkersOrm).values(workers)
+            insert_resumes = insert(ResumesOrm).values(resumes)
+            await session.execute(insert_workers)
+            await session.execute(insert_resumes)
+            await session.commit()
+    """
+        select
+        	w.id,
+        	w.username,
+        	r.compensation,
+        	r.workload,
+        	avg(r.compensation) over (partition by workload)::int as avg_workload_compensation
+        from resumes r
+        join workers w on r.worker_id = w.id
+
+
+
+        select *, compensation-avg_workload_compensation as compensation_diff
+        from
+        (select
+        	w.id,
+        	w.username,
+        	r.compensation,
+        	r.workload,
+        	avg(r.compensation) over (partition by workload)::int as avg_workload_compensation
+        from resumes r
+        join workers w on r.worker_id = w.id) helper1
+
+
+
+        With helper2 as(
+        	select *, compensation-avg_workload_compensation as compensation_diff
+        	from
+        	(select
+        		w.id,
+        		w.username,
+        		r.compensation,
+        		r.workload,
+        		avg(r.compensation) over (partition by workload)::int as avg_workload_compensation
+        	from resumes r
+        	join workers w on r.worker_id = w.id) helper1
+        )
+        select * from helper2
+        order by compensation_diff desc
+    """
+    @staticmethod
+    async def join_cte_subquery_window_func(like_language: str = "Python"):
+        async with asyn_session_faktory() as session:
+            """
+                    With helper2 as(
+                select *, compensation-avg_workload_compensation as compensation_diff
+                from
+                (select
+                    w.id,
+                    w.username,
+                    r.compensation,
+                    r.workload,
+                    avg(r.compensation) over (partition by workload)::int as avg_workload_compensation
+                from resumes r
+                join workers w on r.worker_id = w.id) helper1
+            )
+            select * from helper2
+            order by compensation_diff desc
+            """
+            r = aliased(ResumesOrm)
+            w = aliased(WorkersOrm)
+            subq = (
+                select(
+                    r,
+                    w,
+                    func.avg(r.compensation).over(partition_by=r.workload).cast(Integer).label("avg_workload_compensation"),
+                )
+                #.select_from(r)
+                .join(r, r.worker_id == w.id).subquery("helper1")
+            )
+            cte = (
+                select(
+                    subq.c.worker_id,
+                    subq.c.username,
+                    subq.c.compensation,
+                    subq.c.workload,
+                    subq.c.avg_workload_compensation,
+                    (subq.c.compensation - subq.c.avg_workload_compensation).label("compensation_diff"),
+                ).subquery("helper2")
+            )
+            query = (
+                select(cte)
+                .order_by(cte.c.compensation_diff.desc())
+            )
+            #print(query.compile(compile_kwargs={"literal_binds": True}))
+            res = await session.execute(query)
+            result = res.all()
+            print(f"{result=}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #"""
 #for async sess 
 #"""
